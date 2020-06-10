@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+API_URL="http://127.0.0.1:5000/api"
+
+log() {
+    echo "chores: $1" 1>&2
+}
+
+prompt() {
+    echo -n "$1: " 1>&2
+    read value
+    echo "$value"
+}
+
+get() {
+    log "GET $1"
+    curl -s "${API_URL}${1}" | jq || echo
+}
+
+post() {
+    log "POST $1
+REQUEST:
+$2
+RESPONSE:
+$(curl -X POST -s "${API_URL}${1}" -d "$2" || echo)
+"
+}
+
+prompt_for_new_chore() {
+    cat <<EOF
+{
+  "name": "$(prompt 'name')",
+  "assignee": "$(prompt 'assignee')",
+  "cadence": "$(prompt 'cadence')",
+  "next_due_date": "$(prompt 'next_due_date')"
+}
+EOF
+}
+
+case "$1" in
+    "status" )
+	get "/status/"
+	;;
+    "list" )
+	get "/chores/"
+	;;
+    "new" )
+	post "/chores/" "$(prompt_for_new_chore)"
+	;;
+    "" )
+	log "need a subcommand"
+	exit 1
+	;;
+    * )
+	log "unkown command $1"
+	exit 1
+	;;
+esac
+    
