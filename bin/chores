@@ -14,7 +14,7 @@ prompt() {
 
 get() {
     log "GET $1"
-    curl -s "${API_URL}${1}" | jq || echo
+    curl -s "${API_URL}${1}"
 }
 
 post() {
@@ -22,8 +22,13 @@ post() {
 REQUEST:
 $2
 RESPONSE:
-$(curl -X POST -s "${API_URL}${1}" -d "$2" || echo)
+$(curl -X POST -s "${API_URL}${1}" -d "$2")
 "
+}
+
+delete() {
+    log "DELETE $1"
+    curl -s -X DELETE "${API_URL}${1}" 
 }
 
 prompt_for_new_chore() {
@@ -46,6 +51,9 @@ case "$1" in
 	;;
     "get" )
 	get "/chores/$(prompt 'id')/"
+	;;
+    "delete" )
+	delete "/chores/$(prompt 'id')/"
 	;;
     "new" )
 	post "/chores/" "$(prompt_for_new_chore)"

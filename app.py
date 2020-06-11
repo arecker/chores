@@ -126,12 +126,19 @@ def chores_list():
     return flask.jsonify(chore.toJsonSafe()), 201
 
 
-@app.route('/api/chores/<uuid:id>/', methods=['GET'])
+@app.route('/api/chores/<uuid:id>/', methods=['GET', 'DELETE'])
 def chores_detail(id):
+    app.logger.debug('fetching chore with id %s', id)
+    chore = Chore.query.get_or_404(id)
+
     if flask.request.method == 'GET':
-        chore = Chore.query.get_or_404(id)
-        app.logger.debug('fetching chore with id %s', id)
         return flask.jsonify(chore.toJsonSafe()), 200
+
+    if flask.request.method == 'DELETE':
+        app.logger.debug('deleting chore with id %s', id)
+        db.session.delete(chore)
+        db.session.commit()
+        return '', 204
 
 
 if __name__ == '__main__':
