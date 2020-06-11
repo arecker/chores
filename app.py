@@ -40,7 +40,7 @@ class Chore(db.Model):
     ]
 
     id = sa.Column(sau.UUIDType(binary=False), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    name = sa.Column(sa.String(80), unique=True, nullable=False)
+    name = sa.Column(sa.String(80), nullable=False)
     assignee = sa.Column(sau.ChoiceType(assignees), nullable=False)
     cadence = sa.Column(sau.ChoiceType(cadences), nullable=False)
     next_due_date = sa.Column(sa.Date, nullable=False)
@@ -124,6 +124,14 @@ def chores_list():
     db.session.add(chore)
     db.session.commit()
     return flask.jsonify(chore.toJsonSafe()), 201
+
+
+@app.route('/api/chores/<uuid:id>/', methods=['GET'])
+def chores_detail(id):
+    if flask.request.method == 'GET':
+        chore = Chore.query.get_or_404(id)
+        app.logger.debug('fetching chore with id %s', id)
+        return flask.jsonify(chore.toJsonSafe()), 200
 
 
 if __name__ == '__main__':

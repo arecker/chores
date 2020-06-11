@@ -44,6 +44,9 @@ case "$1" in
     "list" )
 	get "/chores/"
 	;;
+    "get" )
+	get "/chores/$(prompt 'id')/"
+	;;
     "new" )
 	post "/chores/" "$(prompt_for_new_chore)"
 	;;
