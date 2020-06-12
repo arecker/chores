@@ -105,6 +105,11 @@ class Chore(db.Model):
         }
 
 
+@app.route('/', methods=['GET'])
+def index():
+    return flask.render_template('index.html')
+
+
 @app.route('/api/status/', methods=['GET'])
 def status():
     return {
