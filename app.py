@@ -46,10 +46,12 @@ class Chore(db.Model):
     next_due_date = sa.Column(sa.Date, nullable=False)
 
     @staticmethod
-    def validate(data):
+    def validate_missing(data):
         required = ['name', 'assignee', 'cadence', 'next_due_date']
-        missing = [f for f in required if not data.get(f)]
+        return [f for f in required if not data.get(f)]
 
+    @staticmethod
+    def validate_values(data):
         invalid, clean = [], {}
 
         name = data.get('name', '')
@@ -85,6 +87,12 @@ class Chore(db.Model):
         except ValueError:
             invalid.append('next_due_date is not in %d-%m-%Y format')
 
+        return invalid, clean
+
+    @staticmethod
+    def validate(data):
+        missing = Chore.validate_missing(data)
+        invalid, clean = Chore.validate_values(data)
         return missing, invalid, clean
 
     def toJsonSafe(self):
@@ -126,7 +134,7 @@ def chores_list():
     return flask.jsonify(chore.toJsonSafe()), 201
 
 
-@app.route('/api/chores/<uuid:id>/', methods=['GET', 'DELETE'])
+@app.route('/api/chores/<uuid:id>/', methods=['GET', 'DELETE', 'PUT'])
 def chores_detail(id):
     app.logger.debug('fetching chore with id %s', id)
     chore = Chore.query.get_or_404(id)
@@ -139,6 +147,21 @@ def chores_detail(id):
         db.session.delete(chore)
         db.session.commit()
         return '', 204
+
+    if flask.request.method == 'PUT':
+        data = flask.request.get_json(force=True)
+
+        missing, invalid, clean = Chore.validate(data)
+
+        if missing or invalid:
+            app.logger.debug('could not update chore from data = %s', data)
+            return flask.jsonify(missing=missing, invalid=invalid), 400
+
+        app.logger.debug('updating new chore from data = %s', clean)
+        chore.query.update(clean)
+        db.session.commit()
+        db.session.refresh(chore)
+        return flask.jsonify(chore.toJsonSafe()), 201
 
 
 if __name__ == '__main__':

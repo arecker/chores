@@ -12,6 +12,12 @@ prompt() {
     echo "$value"
 }
 
+promptWithDefault() {
+    read -p "$1 [$2]: " value
+    value="${value:-${2}}"
+    echo "$value"
+}
+
 get() {
     log "GET $1"
     curl -s "${API_URL}${1}"
@@ -23,6 +29,15 @@ REQUEST:
 $2
 RESPONSE:
 $(curl -X POST -s "${API_URL}${1}" -d "$2")
+"
+}
+
+put() {
+    log "PUT $1
+REQUEST:
+$2
+RESPONSE:
+$(curl -X PUT -s "${API_URL}${1}" -d "$2")
 "
 }
 
@@ -54,6 +69,9 @@ case "$1" in
 	;;
     "delete" )
 	delete "/chores/$(prompt 'id')/"
+	;;
+    "update" )
+	put "/chores/$(prompt 'id')/" "$(prompt_for_new_chore)"
 	;;
     "new" )
 	post "/chores/" "$(prompt_for_new_chore)"
