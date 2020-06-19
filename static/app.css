@@ -82,3 +82,7 @@ body {
 }
 
 [v-cloak] { display: none }
+
+p.crowded {
+    margin-bottom: 0;
+}

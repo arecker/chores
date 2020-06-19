@@ -4,11 +4,13 @@ chores, the website
 
 __version__ = '0.0.0'
 
+import copy
 import datetime
 import os
 import platform
 import uuid
 
+from dateutil.relativedelta import relativedelta
 import flask
 import flask_sqlalchemy
 import sqlalchemy as sa
@@ -103,6 +105,35 @@ class Chore(db.Model):
             'next_due_date': str(self.next_due_date),
         }
 
+    @property
+    def next_due_delta(self):
+        cadence = int(self.cadence.code)
+
+        if cadence == 0:
+            return relativedelta(days=7)
+        elif cadence == 1:
+            return relativedelta(months=+1)
+        elif cadence == 2:
+            return relativedelta(days=+14)
+        elif cadence == 3:
+            return relativedelta(months=+2)
+        elif cadence == 4:
+            return relativedelta(months=+3)
+        else:
+            raise ValueError(f'unexpected cadence type {self.cadence}')
+
+    def find_next_due_date(self):
+        today = datetime.datetime.now().date()
+        next_due = copy.copy(self.next_due_date)
+
+        if next_due > today:  # eager beaver, advance into future
+            return next_due + self.next_due_delta
+        else:  # slacker, keep advancing until caught up
+            while not (next_due > today):
+                next_due += self.next_due_delta
+
+            return next_due
+
 
 @app.route('/', methods=['GET'])
 def index():
@@ -173,6 +204,18 @@ def chores_detail(id):
         db.session.commit()
         db.session.refresh(chore)
         return flask.jsonify(chore.toJsonSafe()), 201
+
+
+@app.route('/api/chores/<uuid:id>/complete/', methods=['POST'])
+def chores_complete(id):
+    app.logger.debug('fetching chore with id %s', id)
+    chore = Chore.query.get_or_404(id)
+    chore.query.update({
+        'next_due_date': chore.find_next_due_date(),
+    })
+    db.session.commit()
+    db.session.refresh(chore)
+    return flask.jsonify(chore.toJsonSafe()), 200
 
 
 if __name__ == '__main__':

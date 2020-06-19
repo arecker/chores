@@ -17,10 +17,11 @@
 	<button type="button"
 		      v-on:click="choreClicked(chore)"
 		      class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-		v-for="chore in chores">
+		v-for="chore in sortedChores">
 	  <span>
 	    <h5>{{ chore.name }}</h5>
-	    <p class="text-muted">Assigned: {{ chore.assignee | assignee }}</p>	    
+	    <p class="text-muted crowded">Due: {{ chore.next_due_date | prettyDate }}</p>
+	    <p class="text-muted crowded">Assigned: {{ chore.assignee | assignee }}</p>
 	  </span>
 	  <span v-on:click.stop="choreCompleteClicked(chore)" class="btn btn-lrg btn-outline-primary">✓</span>
 	</button>

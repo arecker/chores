@@ -19,6 +19,11 @@ var Chores = (function() {
     return axios.delete(detailUrl(id));
   };
 
+  api.complete = function(id) {
+    var url = detailUrl(id) + 'complete/'
+    return axios.post(url);
+  };
+
   api.create = function(chore) {
     return axios.post(choresUrl, chore);
   };
@@ -50,9 +55,20 @@ var app = new Vue({
   filters: {
     assignee: function(value) {
       return GLOBALS.assignees[value] || 'Unknown';
-    }
+    },
+    prettyDate: function(date) {
+      return moment(date).format('dddd, MMMM D Y');
+    },
   },
 
+  computed: {
+    sortedChores: function() {
+      return this.chores.sort(function(a, b){
+	return moment(a.next_due_date).diff(b.next_due_date);
+      });
+    },
+  },
+  
   methods: {
     choreClicked: function(chore) {
       console.log('editing ' + chore.id);
@@ -86,7 +102,16 @@ var app = new Vue({
       });
     },
     choreCompleteClicked: function(chore) {
+      var app = this;
       console.log('moving chore ' + chore.id + 'to next due date');
+      Chores.complete(chore.id).then(function(response) {
+	app.chores = app.chores.filter(function(thisChore) {
+	  return thisChore.id != chore.id;
+	});
+	app.chores.push(response.data);
+      }).catch(function(response) {
+	console.log(response);
+      });
     },
     saveClicked: function() {
       var app = this;
