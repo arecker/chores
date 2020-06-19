@@ -5,7 +5,6 @@ chores, the website
 __version__ = '0.0.0'
 
 import datetime
-import json
 import os
 import platform
 import uuid
@@ -82,10 +81,10 @@ class Chore(db.Model):
 
         try:
             clean['next_due_date'] = datetime.datetime.strptime(
-                data.get('next_due_date', ''), '%d-%m-%Y'
+                data.get('next_due_date', ''), '%Y-%m-%d'
             )
         except ValueError:
-            invalid.append('next_due_date is not in %d-%m-%Y format')
+            invalid.append('next_due_date is not in %Y-%m-%d format')
 
         return invalid, clean
 
@@ -107,7 +106,14 @@ class Chore(db.Model):
 
 @app.route('/', methods=['GET'])
 def index():
-    return flask.render_template('index.html')
+    return flask.render_template(
+        'index.html',
+        globals={
+            'assignees': dict(Chore.assignees),
+            'cadences': dict(Chore.cadences),
+            'api_url': f'{flask.request.url}api/',
+        }
+    )
 
 
 @app.route('/api/status/', methods=['GET'])
