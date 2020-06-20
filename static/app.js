@@ -75,10 +75,10 @@ var app = new Vue({
       return app.chores.filter(function(c) {
 
 	// days
-	if (app.filters.days !== 'None') {
-	  var daysLimit = parseInt(app.filters.days);
-	  var daysAway = moment(c.next_due_date).diff(moment(), 'days');
-	  if (daysAway > daysLimit) {
+	if (app.filters.days == '0') {
+	  var now = moment(moment().format('YYYY-MM-DD'));
+	  var then = moment(c.next_due_date);
+	  if (!then.isSameOrBefore(now)) {
 	    return false;
 	  }
 	}

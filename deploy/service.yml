@@ -23,4 +23,4 @@ spec:
       paths:
       - backend:
           serviceName: chores
-          servicePort: 80
+          servicePort: 5000
