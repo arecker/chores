@@ -11,8 +11,8 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py ./
-COPY templates ./
-COPY static ./
+COPY templates ./templates/
+COPY static ./static/
 COPY scripts/entry.sh .
 
 ENTRYPOINT ["./entry.sh"]
