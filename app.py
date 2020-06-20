@@ -200,7 +200,10 @@ def chores_detail(id):
             return flask.jsonify(missing=missing, invalid=invalid), 400
 
         app.logger.debug('updating new chore from data = %s', clean)
-        chore.query.update(clean)
+        chore.name = clean['name']
+        chore.assignee = clean['assignee']
+        chore.cadence = clean['cadence']
+        chore.next_due_date = clean['next_due_date']
         db.session.commit()
         db.session.refresh(chore)
         return flask.jsonify(chore.toJsonSafe()), 201
@@ -210,9 +213,8 @@ def chores_detail(id):
 def chores_complete(id):
     app.logger.debug('fetching chore with id %s', id)
     chore = Chore.query.get_or_404(id)
-    chore.query.update({
-        'next_due_date': chore.find_next_due_date(),
-    })
+    chore.next_due_date = chore.find_next_due_date()
+    db.session.add(chore)
     db.session.commit()
     db.session.refresh(chore)
     return flask.jsonify(chore.toJsonSafe()), 200

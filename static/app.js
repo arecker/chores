@@ -41,6 +41,11 @@ var app = new Vue({
     choreEditMissing: [],
     choreEditSummary: '',
     globals: GLOBALS,
+    filters: {
+      days: 0,
+      assignee: 'None',
+      cadence: 'None',
+    },
   },
 
   mounted: function() {
@@ -53,8 +58,11 @@ var app = new Vue({
   },
 
   filters: {
-    assignee: function(value) {
+    displayAssignee: function(value) {
       return GLOBALS.assignees[value] || 'Unknown';
+    },
+    displayCadence: function(value) {
+      return GLOBALS.cadences[value] || 'Unknown';
     },
     prettyDate: function(date) {
       return moment(date).format('dddd, MMMM D Y');
@@ -62,14 +70,44 @@ var app = new Vue({
   },
 
   computed: {
-    sortedChores: function() {
-      return this.chores.sort(function(a, b){
+    computedChores: function() {
+      var app = this;
+      return app.chores.filter(function(c) {
+
+	// days
+	if (app.filters.days !== 'None') {
+	  var daysLimit = parseInt(app.filters.days);
+	  var daysAway = moment(c.next_due_date).diff(moment(), 'days');
+	  if (daysAway > daysLimit) {
+	    return false;
+	  }
+	}
+
+	// assigned
+	if (app.filters.assignee !== 'None') {
+	  if (c.assignee != app.filters.assignee) {
+	    return false;
+	  }
+	}
+
+	// cadence
+	if (app.filters.cadence !== 'None') {
+	  if (c.cadence != app.filters.cadence) {
+	    return false;
+	  }
+	}
+
+	return true;
+      }).sort(function(a, b){
 	return moment(a.next_due_date).diff(b.next_due_date);
       });
     },
   },
   
   methods: {
+    isOverdue: function(chore) {
+      return moment(chore.next_due_date).diff(moment(), 'days') < 0;
+    },
     choreClicked: function(chore) {
       console.log('editing ' + chore.id);
       $('#modal').modal('show');
@@ -137,12 +175,16 @@ var app = new Vue({
 	});
       } else {
 	console.log('updating chore ' + this.choreEdit.id);
-	Chores.update(this.choreEdit).then(function(response) {
+	Chores.update(app.choreEdit).then(function(response) {
 	  console.log('Success: ' + response);
+	  app.chores = app.chores.filter(function(thisChore) {
+	    return thisChore.id != app.choreEdit.id;
+	  });
+	  app.chores.push(response.data);
 	  $('#modal').modal('hide');
 	}).catch(function(response) {
 	  app.choreEditSummary = 'Could not update chore!';
-
+	  console.log(response);
 	  var data = response.response.data;
 
 	  console.log(data);

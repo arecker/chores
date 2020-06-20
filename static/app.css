@@ -86,3 +86,7 @@ body {
 p.crowded {
     margin-bottom: 0;
 }
+
+div.btn-group.comfy {
+    margin-left: 10px;
+}

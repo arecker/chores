@@ -3,13 +3,32 @@
 <script>
  var GLOBALS = {{ globals | tojson }};
 </script>
+<header class="header clearfix"><h1 class="text-muted text-lowercase">Chores</h1></header>
 <main id="app" role="main">
   {% raw %}
-  <div class="row app">
+  <div class="row app" v-cloak>
     <div class="col-lg">
       <div class="btn-toolbar" role="toolbar">
 	<div class="btn-group" role="group">
 	  <button v-on:click="newClicked()" data-toggle="modal" data-target="#modal" class="btn btn-info">New</button>
+	</div>
+	<div class="btn-group comfy" role="group">
+	  <select v-model="filters.days" class="custom-select">
+	    <option value="0">Today</option>
+	    <option value="None">All Time</option>
+	  </select>
+	</div>
+	<div class="btn-group comfy" role="group">
+	  <select v-model="filters.assignee" class="custom-select">
+	    <option value="None" selected>(assigned)</option>
+	    <option v-for="(value, text) in globals.assignees" v-bind:value="text">{{ value }}</option>
+	  </select>
+	</div>
+	<div class="btn-group comfy" role="group">
+	  <select v-model="filters.cadence" class="custom-select">
+	    <option value="None" selected>(cadence)</option>
+	    <option v-for="(value, text) in globals.cadences" v-bind:value="text">{{ value }}</option>
+	  </select>
 	</div>
       </div>
       <hr/>
@@ -17,11 +36,11 @@
 	<button type="button"
 		      v-on:click="choreClicked(chore)"
 		      class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-		v-for="chore in sortedChores">
+		v-for="chore in computedChores">
 	  <span>
 	    <h5>{{ chore.name }}</h5>
-	    <p class="text-muted crowded">Due: {{ chore.next_due_date | prettyDate }}</p>
-	    <p class="text-muted crowded">Assigned: {{ chore.assignee | assignee }}</p>
+	    <p class="crowded" v-bind:class="[isOverdue(chore) ? 'text-danger' : 'text-muted']">Due: {{ chore.next_due_date | prettyDate }}</p>
+	    <p class="text-muted crowded">{{ chore.cadence | displayCadence }}, Assigned: {{ chore.assignee | displayAssignee }}</p>
 	  </span>
 	  <span v-on:click.stop="choreCompleteClicked(chore)" class="btn btn-lrg btn-outline-primary">✓</span>
 	</button>
