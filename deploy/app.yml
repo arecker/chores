@@ -1,0 +1,56 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: app
+  namespace: chores
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: chores
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+      volumes:
+        - name: data
+          nfs:
+            path: /mnt/scratch/farm/chores
+            server: archive.local
+      containers:
+      - name: app
+        image: arecker/chores:latest
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: data
+          mountPath: /usr/src/app/data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: chores
+spec:
+  ports:
+  - protocol: TCP
+    port: 5000
+  selector:
+    service: chores
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: chores
+  namespace: chores
+spec:
+  rules:
+  - host: chores.local
+    http:
+      paths:
+      - backend:
+          serviceName: chores
+          servicePort: 80
