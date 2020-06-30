@@ -1,19 +1,23 @@
 {
   "name": "chores",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/arecker/chores.git"
+  "dependencies": {
+    "bootstrap": "^4.5.0",
+    "bootstrap-vue": "^2.15.0",
+    "vue": "^2.6.11"
   },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/arecker/chores/issues"
+  "devDependencies": {
+    "@vue/cli-service": "~4.4.0",
+    "vue-template-compiler": "^2.6.11"
   },
-  "homepage": "https://github.com/arecker/chores#readme"
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
 }
