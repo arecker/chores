@@ -12,6 +12,7 @@ import uuid
 
 from dateutil.relativedelta import relativedelta
 import flask
+import flask_cors
 import flask_sqlalchemy
 import sqlalchemy as sa
 import sqlalchemy_utils as sau
@@ -22,6 +23,8 @@ here = os.path.dirname(os.path.realpath(__file__))
 app = flask.Flask('chores')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{here}/data/chores.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+flask_cors.CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 db = flask_sqlalchemy.SQLAlchemy(app)
 
 

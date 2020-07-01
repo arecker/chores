@@ -6,6 +6,7 @@
 	<Header></Header>
 	<hr/>
 	<Toolbar></Toolbar>
+	<ChoreList></ChoreList>
       </b-col>
     </b-row>
   </b-container>
@@ -15,12 +16,14 @@
 <script>
 import Header from './components/Header.vue'
 import Toolbar from './components/Toolbar.vue'
+import ChoreList from './components/ChoreList.vue'
 
 export default {
   name: 'App',
   components: {
     Header,
     Toolbar,
+    ChoreList,
   }
 }
 </script>
