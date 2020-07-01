@@ -160,6 +160,16 @@ def status():
     }
 
 
+@app.route('/api/assignees/', methods=['GET'])
+def lookup_assignees():
+    return flask.jsonify(dict(Chore.assignees))
+
+
+@app.route('/api/cadences/', methods=['GET'])
+def lookup_cadences():
+    return flask.jsonify(dict(Chore.cadences))
+
+
 @app.route('/api/chores/', methods=['GET', 'POST'])
 def chores_list():
     if flask.request.method == 'GET':
