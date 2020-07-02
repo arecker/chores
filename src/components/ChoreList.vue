@@ -1,7 +1,7 @@
 <template>
 <b-list-group flush>
   <b-list-group-item
-    action
+    action button
     class="d-flex justify-content-between align-items-center"
     v-for="chore in chores"
     v-bind:key="chore.id">

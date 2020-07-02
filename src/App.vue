@@ -6,6 +6,7 @@
 	<Header></Header>
 	<hr/>
 	<Toolbar></Toolbar>
+	<hr/>
 	<ChoreList></ChoreList>
       </b-col>
     </b-row>
