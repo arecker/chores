@@ -11,8 +11,9 @@
       <p class="text-muted crowded">{{ chore.prettyCadence() }}, Assigned: {{ chore.prettyAssignee() }}</p>
     </span>
     <b-button size="lg" variant="outline-primary"
+	      v-bind:disabled="chore.buttonDisabled"
 	      v-on:click.stop="chore.complete()">
-      <b-icon-check></b-icon-check>
+      <b-icon v-bind:icon="chore.buttonIcon"></b-icon>
     </b-button>
   </b-list-group-item>
 </b-list-group>

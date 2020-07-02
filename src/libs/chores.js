@@ -5,12 +5,27 @@ import api from './api.js'
 function Chore(data) {
   var self = {};
 
-  self.data = data;
+  self.complete = async function() {
+    if (self.buttonDisabled) {
+      return
+    }
+    
+    self.startWaiting();
 
-  self.name = data.name;
+    var response = await api.complete(self.id)
+    self.reloadData(response.data);
+    
+    self.stopWaiting();
+  };
 
-  self.complete = function() {
-    alert('complete')
+  self.startWaiting = function() {
+    self.buttonIcon = 'three-dots'
+    self.buttonDisabled = true;
+  };
+
+  self.stopWaiting = function() {
+    self.buttonIcon = 'check'
+    self.buttonDisabled = false;
   };
 
   self.cssFromDueDate = function() {
@@ -25,7 +40,7 @@ function Chore(data) {
   };
 
   self.prettyDate = function() {
-    return moment(self.next_due_date).format('dddd, MMMM D Y');
+    return moment(self.data.next_due_date).format('dddd, MMMM D Y');
   };
 
   self.prettyCadence = function() {
@@ -44,6 +59,15 @@ function Chore(data) {
       '1': 'Marissa',
     }[self.data.assignee]
   };
+
+  self.reloadData = function(data) {
+    self.name = data.name;
+    self.id = data.id;
+    self.data = data;
+  };
+
+  self.reloadData(data);
+  self.stopWaiting();
 
   return self;
 }

@@ -11,5 +11,10 @@ function detailUrl(id) {
 export default {
   list() {
     return axios.get(choresUrl);
+  },
+
+  complete(id) {
+    var url = detailUrl(id) + 'complete/'
+    return axios.post(url);
   }
 }
