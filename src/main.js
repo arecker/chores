@@ -8,9 +8,9 @@ Vue.use(IconsPlugin)
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-// libraries
-import api from './libs/api.js'
-Vue.prototype.$api = api
+// libs
+import libs from './libs.js'
+Vue.prototype.libs = libs
 
 import App from './App.vue'
 
