@@ -4,17 +4,17 @@ const apiUrl = process.env.VUE_APP_API_URL
 
 const choresUrl = apiUrl + 'chores/'
 
-function detailUrl(id) {
+function detailUrl (id) {
   return choresUrl + id + '/'
 }
 
 export default {
-  list() {
-    return axios.get(choresUrl);
+  list () {
+    return axios.get(choresUrl)
   },
 
-  complete(id) {
+  complete (id) {
     var url = detailUrl(id) + 'complete/'
-    return axios.post(url);
+    return axios.post(url)
   }
 }

@@ -3,5 +3,5 @@ import chores from './libs/chores.js'
 
 export default {
   api: api,
-  chores: chores,
+  chores: chores
 }
