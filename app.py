@@ -31,6 +31,7 @@ class Chore(db.Model):
     assignees = [
         ('0', 'Alex'),
         ('1', 'Marissa'),
+        ('2', 'Rodney'),
     ]
 
     cadences = [
