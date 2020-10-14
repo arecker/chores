@@ -2,7 +2,7 @@
 
 set -e
 
-PLATFORMS="linux/arm/v7"
+PLATFORMS="linux/386,linux/amd64,linux/arm/v7"
 
 docker buildx build \
        --platform "${PLATFORMS}" \
