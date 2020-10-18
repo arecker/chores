@@ -1,0 +1,44 @@
+apiVersion: 'batch/v1beta1'
+kind: 'CronJob'
+metadata:
+  name: 'chorebot'
+spec:
+  schedule: '0 10 * * *'
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: 'OnFailure'
+          volumes:
+          - name: 'secrets'
+            emptyDir:
+              medium: 'Memory'
+          containers:
+          - name: 'chorebot'
+            image: 'arecker/chores:latest'
+            imagePullPulicy: 'Always'
+            env:
+            - name: 'HUB_URL'
+              value: 'http://chores.local'
+            - name: 'ENTRYPOINT'
+              value: 'chorebot'
+            volumeMounts:
+            - name: 'secrets'
+              mountPath: '/secrets'
+              readOnly: true
+          - name: 'secretboi'
+            image: 'arecker/secretboi:latest'
+            imagePullPolicy: 'Always'
+            env:
+            - name: 'VAULT_ADDR'
+              value: 'http://vault.local'
+            - name: 'VAULT_ROLE'
+              value: 'chorebot'
+            - name: 'SECRET_WEBHOOK'
+              value: '/chorebot'
+            - name: 'ONLY_RUN_ONCE'
+              value: 'true'
+            volumeMounts:
+              - name: 'secrets'
+                mountPath: '/secrets'
+              

@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chores
@@ -7,19 +7,22 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+  selector:
+    matchLabels:
+      name: chores
   template:
     metadata:
       labels:
-        service: chores
+        name: chores
     spec:
       securityContext:
-        runAsUser: 1001
+        runAsUser: 1026
         runAsGroup: 1001
       volumes:
         - name: data
           nfs:
-            path: /mnt/scratch/farm/chores
-            server: archive.local
+            path: /volume1/farm/chores
+            server: nas.local
       containers:
       - name: app
         image: arecker/chores:latest
