@@ -2,6 +2,7 @@ apiVersion: 'batch/v1beta1'
 kind: 'CronJob'
 metadata:
   name: 'chorebot'
+  namespace: 'chores'
 spec:
   schedule: '0 10 * * *'
   jobTemplate:
@@ -16,7 +17,7 @@ spec:
           containers:
           - name: 'chorebot'
             image: 'arecker/chores:latest'
-            imagePullPulicy: 'Always'
+            imagePullPolicy: 'Always'
             env:
             - name: 'HUB_URL'
               value: 'http://chores.local'
@@ -31,7 +32,7 @@ spec:
             imagePullPolicy: 'Always'
             env:
             - name: 'VAULT_ADDR'
-              value: 'http://vault.local'
+              value: 'http://vault.vault.svc.cluster:8200'
             - name: 'VAULT_ROLE'
               value: 'chorebot'
             - name: 'SECRET_WEBHOOK'
