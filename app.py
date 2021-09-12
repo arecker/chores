@@ -19,7 +19,7 @@ import sqlalchemy_utils as sau
 here = os.path.dirname(os.path.realpath(__file__))
 
 app = flask.Flask('chores')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////chores.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chores.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = flask_sqlalchemy.SQLAlchemy(app)
 
