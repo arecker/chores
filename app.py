@@ -16,11 +16,10 @@ import flask_sqlalchemy
 import sqlalchemy as sa
 import sqlalchemy_utils as sau
 
-
 here = os.path.dirname(os.path.realpath(__file__))
 
 app = flask.Flask('chores')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_PATH', f'sqlite:///{here}/data/chores.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////chores.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = flask_sqlalchemy.SQLAlchemy(app)
 
@@ -42,7 +41,11 @@ class Chore(db.Model):
         ('4', 'Every Three Months'),
     ]
 
-    id = sa.Column(sau.UUIDType(binary=False), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
+    id = sa.Column(sau.UUIDType(binary=False),
+                   primary_key=True,
+                   default=uuid.uuid4,
+                   unique=True,
+                   nullable=False)
     name = sa.Column(sa.String(80), nullable=False)
     assignee = sa.Column(sau.ChoiceType(assignees), nullable=False)
     cadence = sa.Column(sau.ChoiceType(cadences), nullable=False)
@@ -85,8 +88,7 @@ class Chore(db.Model):
 
         try:
             clean['next_due_date'] = datetime.datetime.strptime(
-                data.get('next_due_date', ''), '%Y-%m-%d'
-            )
+                data.get('next_due_date', ''), '%Y-%m-%d')
         except ValueError:
             invalid.append('next_due_date is not in %Y-%m-%d format')
 
@@ -139,14 +141,12 @@ class Chore(db.Model):
 
 @app.route('/', methods=['GET'])
 def index():
-    return flask.render_template(
-        'index.html',
-        globals={
-            'assignees': dict(Chore.assignees),
-            'cadences': dict(Chore.cadences),
-            'api_url': f'{flask.request.url}api/',
-        }
-    )
+    return flask.render_template('index.html',
+                                 globals={
+                                     'assignees': dict(Chore.assignees),
+                                     'cadences': dict(Chore.cadences),
+                                     'api_url': f'{flask.request.url}api/',
+                                 })
 
 
 @app.route('/api/status/', methods=['GET'])
