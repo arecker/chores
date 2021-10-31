@@ -77,7 +77,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             headers = dict([(k.upper(), v.upper())
                             for k, v in self.headers.items()])
             length = int(headers['CONTENT-LENGTH'])
-        except KeyError:
+        except KeyError:  # TODO: https://bugs.python.org/issue222756
             message = 'please supply valid "content-length" header'
             raise HttpError(status=400, reason=message)
 
