@@ -15,10 +15,16 @@ Route = collections.namedtuple('Route', 'methods function')
 ROUTES = {}
 
 
-def register(path, methods=[]):
-    methods = sorted(['HEAD'] + methods)
+def ensure_trailing_slash(path):
     if not path.endswith('/') and not os.path.splitext(path)[1]:
-        path += '/'
+        return path + '/'
+    else:
+        return path
+
+
+def register(path, methods=[]):
+    methods = set(sorted(['HEAD', 'GET'] + methods))
+    path = ensure_trailing_slash(path)
 
     def decorator(func):
         if path in ROUTES:
@@ -34,44 +40,95 @@ def register(path, methods=[]):
     return decorator
 
 
+class HttpError(Exception):
+    def __init__(self, status=0, reason=''):
+        self.__dict__.update({'status': status, 'reason': reason})
+
+
+Request = collections.namedtuple('Request', ['method', 'data'])
+Response = collections.namedtuple('Response', ['status', 'data'])
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, *args, **kwargs):
-        pass
+        """Just overriding here to supress logging."""
+
+    def calculate_route(self):
+        path = ensure_trailing_slash(self.path)
+
+        try:
+            return ROUTES[path]
+        except KeyError:
+            message = f'no known route for {path}'
+            raise HttpError(status=404, reason=message)
+
+    def validate_method(self, route):
+        try:
+            assert self.command in route.methods
+            return self.command
+        except AssertionError:
+            message = f'the {ensure_trailing_slash(self.path)} route'
+            message += f'does not accept {self.command}'
+            message += f', only {route.methods}'
+            raise HttpError(status=405, reason=message)
+
+    def extract_request_data(self):
+        try:
+            headers = dict([(k.upper(), v.upper())
+                            for k, v in self.headers.items()])
+            length = int(headers['CONTENT-LENGTH'])
+        except KeyError:
+            message = 'please supply valid "content-length" header'
+            raise HttpError(status=400, reason=message)
+
+        data = self.rfile.read(length)
+        data = data.decode('utf-8')
+
+        try:
+            return json.loads(data)
+        except json.decoder.JSONDecodeError:
+            message = f'please supply valid json body with length of {length}'
+            raise HttpError(status=400, reason=message)
+
+    def execute_route(self, route, data):
+        try:
+            request = Request(method=self.command, data=data)
+            status, data = route.function(request)
+            return Response(status=status, data=data)
+        except Exception as e:
+            message = f'the {ensure_trailing_slash(self.path)}'
+            message += ' route encountered a problem'
+
+            logging.exception(e)
+            raise HttpError(status=500, reason=message)
 
     def do(self):
         try:
-            route = ROUTES[self.path]
-            assert self.command in route.methods
-        except KeyError:
-            status = 404
-            response = {'status': status, 'reason': 'page not found'}
-        except AssertionError:
-            status = 405
-            response = {
-                'status':
-                status,
-                'reason':
-                '{} does not allow {} method, only {}'.format(
-                    self.path, self.command, route.methods)
-            }
-        else:
-            try:
-                status, response = route.function()
-            except Exception:
-                logging.exception('%s on %s created unhandled exception',
-                                  self.command, self.path)
-                status = 500
-                response = {
-                    'status': status,
-                    'reason': 'internal server error'
-                }
+            route = self.calculate_route()
 
-        response = json.dumps(response, indent=2, sort_keys=True)
-        response = response.encode('utf-8')
-        self.send_response(status)
+            if self.validate_method(route) in ['POST', 'PUT']:
+                data = self.extract_request_data()
+            else:
+                data = None
+            response = self.execute_route(route=route, data=data)
+        except HttpError as e:
+            data = {'status': e.status, 'reason': e.reason}
+            response = Response(status=e.status, data=data)
+
+        logging.info('%s %s - %d - %s', self.command,
+                     ensure_trailing_slash(self.path), response.status,
+                     response.data)
+
+        # send headers
+        self.send_response(response.status)
         self.send_header('Content-type', 'application/json; charset=utf-8')
         self.end_headers()
-        self.wfile.write(response)
+
+        # send body
+        body = json.dumps(response.data).encode('utf-8')
+        self.wfile.write(body)
+
+        # all done
         return
 
     def do_HEAD(self):
@@ -84,12 +141,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.do()
 
 
-@register('/info/', methods=['GET'])
-def info():
-    int('fish')
+@register('/info/', methods=['GET', 'POST'])
+def info(request):
     return 200, {
-        'datetime': datetime.datetime.now().isoformat(),
-        'python_version': platform.python_version(),
+        'request_method': request.method,
+        'request_data': request.data,
+        'server_timestamp': datetime.datetime.now().isoformat(),
+        'server_python_version': platform.python_version(),
     }
 
 
