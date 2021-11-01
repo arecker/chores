@@ -7,9 +7,7 @@ import os
 import platform
 import sys
 
-logging.basicConfig(stream=sys.stderr,
-                    format='chores: %(message)s',
-                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 Route = collections.namedtuple('Route', 'methods function')
 ROUTES = {}
@@ -28,12 +26,12 @@ def register(path, methods=[]):
 
     def decorator(func):
         if path in ROUTES:
-            logging.warning('oops, duplicate routes detected for %s!', path)
+            logger.warning('oops, duplicate routes detected for %s!', path)
 
         route = Route(methods=methods, function=func)
         ROUTES[path] = route
-        logging.info('registered route %s %s with %s()', path, route.methods,
-                     route.function.__name__)
+        logger.info('registered route %s %s with %s()', path, route.methods,
+                    route.function.__name__)
 
         return func
 
@@ -51,7 +49,7 @@ Response = collections.namedtuple('Response', ['status', 'data'])
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, *args, **kwargs):
-        """Just overriding here to supress logging."""
+        """Just overriding here to supress logger."""
 
     def calculate_route(self):
         path = ensure_trailing_slash(self.path)
@@ -99,7 +97,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             message = f'the {ensure_trailing_slash(self.path)}'
             message += ' route encountered a problem'
 
-            logging.exception(e)
+            logger.exception(e)
             raise HttpError(status=500, reason=message)
 
     def do(self):
@@ -115,9 +113,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             data = {'status': e.status, 'reason': e.reason}
             response = Response(status=e.status, data=data)
 
-        logging.info('%s %s - %d - %s', self.command,
-                     ensure_trailing_slash(self.path), response.status,
-                     response.data)
+        logger.info('%s %s - %d - %s', self.command,
+                    ensure_trailing_slash(self.path), response.status,
+                    response.data)
 
         # send headers
         self.send_response(response.status)
@@ -152,16 +150,21 @@ def info(request):
 
 
 def main():
-    logging.info('starting chores webserver (python %s, %s)',
-                 platform.python_version(), sys.executable)
+    logger.info('starting chores webserver (python %s, %s)',
+                platform.python_version(), sys.executable)
 
     httpd = http.server.HTTPServer(server_address=('', 8000),
                                    RequestHandlerClass=Handler)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        logging.info('stopping webserver')
+        logger.info('stopping webserver')
 
 
 if __name__ == '__main__':
+    log_handler = logging.StreamHandler(stream=sys.stderr)
+    log_formatter = logging.Formatter(fmt='chores: %(message)s')
+    log_handler.setFormatter(log_formatter)
+    logger.addHandler(log_handler)
+    logger.setLevel(logging.INFO)
     main()
